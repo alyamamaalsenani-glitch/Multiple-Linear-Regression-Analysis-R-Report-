@@ -1,0 +1,561 @@
+---
+title: "MULTIPLE LINEAR REGRESSION ANALYSIS OF JET TURBINE ENGINE THRUST"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "2025-12-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Introduction🚀
+
+This report presents a statistical analysis of the *turbine thrust* dataset (`turbine_thrust.XLS`). The dataset contains one response variable `y` and six predictor variables `x1` to `x6`, representing engineering or operational measurements related to turbine performance. The objective is to explore relationships, fit a regression model, and interpret results using **R**.
+
+![](turbprp.gif){width="231"}
+
+## 2. Data Preparation and Loading⚙️
+
+The data-set was imported into R using the `readxl` package. Missing values, outliers, and data structure were checked.
+
+```{r cars}
+
+
+# Clear workspace
+rm(list = ls())
+
+
+data <- data.frame(
+  THRUST = c(4540, 4315, 4095, 3650, 3200, 4833, 4617, 4340, 3820, 3368,
+             4445, 4188, 3981, 3622, 3125, 4560, 4340, 4115, 3630, 3210,
+             4330, 4119, 3891, 3467, 3045, 4411, 4203, 3968, 3531, 3074,
+             4350, 4128, 3940, 3480, 3064, 4402, 4180, 3973, 3530, 3080),
+  PSR = c(2140, 2016, 1905, 1675, 1474, 2239, 2120, 1990, 1702, 1487,
+          2107, 1973, 1864, 1674, 1440, 2165, 2048, 1916, 1658, 1489,
+          2062, 1929, 1815, 1595, 1400, 2047, 1935, 1807, 1591, 1388,
+          2071, 1944, 1831, 1612, 1410, 2066, 1954, 1835, 1616, 1407),
+  SSR = c(20640, 20280, 19860, 18980, 18100, 20740, 20305, 19961, 18916, 18012,
+          20520, 20130, 19780, 19020, 18030, 20680, 20340, 19860, 18950, 18700,
+          20500, 20050, 19680, 18890, 17870, 20540, 20160, 19750, 18890, 17870,
+          20460, 20010, 19640, 18710, 17780, 20520, 20150, 19750, 18850, 17910),
+  FFR = c(30250, 30010, 29780, 29330, 28960, 30083, 29831, 29604, 29088, 28675,
+          30120, 29920, 29720, 29370, 28940, 30160, 29960, 29710, 29250, 28890,
+          30190, 29960, 29770, 29360, 28960, 30160, 29940, 29760, 29350, 28910,
+          30180, 29940, 29750, 29360, 28900, 30170, 29950, 29740, 29320, 28910),
+  P = c(205, 195, 184, 164, 144, 216, 206, 196, 171, 149,
+        195, 190, 180, 161, 139, 208, 199, 187, 164, 145,
+        193, 183, 173, 153, 134, 193, 184, 173, 153, 133,
+        198, 186, 178, 156, 136, 197, 188, 178, 156, 137),
+  ET = c(1732, 1697, 1662, 1598, 1541, 1709, 1669, 1640, 1572, 1522,
+         1740, 1711, 1682, 1630, 1572, 1704, 1679, 1642, 1576, 1528,
+         1748, 1713, 1684, 1624, 1569, 1746, 1714, 1679, 1621, 1561,
+         1729, 1692, 1667, 1609, 1552, 1758, 1729, 1690, 1616, 1569),
+  AT = c(99, 100, 97, 97, 97, 87, 87, 87, 85, 85,
+         101, 100, 100, 100, 101, 98, 96, 94, 94, 94,
+         101, 100, 100, 99, 100, 99, 99, 99, 99, 99,
+         102, 101, 101, 101, 101, 100, 99, 99, 99, 100)
+)
+
+
+
+print(dim(data))
+print(head(data))
+print(summary(data))
+
+
+
+
+
+```
+
+A)  **Fit a multiple regression model to the data and test the significance of the individual coefficients as well as the overall regression model.**🔬
+
+```{r}
+# Fit full model
+model <- lm(THRUST ~ PSR + SSR + FFR + P + ET + AT, data = data)
+
+print(summary(model))
+
+
+# Individual coefficient tests
+cat("\n3. INDIVIDUAL COEFFICIENT TESTS:\n")
+coef_table <- summary(model)$coefficients
+for(i in 1:nrow(coef_table)) {
+  cat(sprintf("%-10s: t = %7.3f, p-value = %.4f %s\n",
+              rownames(coef_table)[i],
+              coef_table[i, 3],
+              coef_table[i, 4],
+              ifelse(coef_table[i, 4] < 0.001, "***",
+                     ifelse(coef_table[i, 4] < 0.01, "**",
+                            ifelse(coef_table[i, 4] < 0.05, "*",
+                                   ifelse(coef_table[i, 4] < 0.1, ".", ""))))))
+}
+```
+
+## **Interpretation:**🧠
+
+**Excellent Model Fit:** - **R² = 0.9977**: Model explains **99.77%** of thrust variation (near-perfect fit) - **Adjusted R² = 0.9972**: Minimal penalty for 6 predictors (no overfitting) - **F-statistic = 2350, p \< 0.0001**: Overall model is highly significant
+
+#### **2. SIGNIFICANT PREDICTORS:**
+
+**Highly Significant (α = 0.05):** 1. **PSR (Primary Speed):** β = 1.119, p = 0.0004 - **Strong positive effect**: Main controllable factor for thrust
+
+2.  **AT (Ambient Temperature):** β = -16.95, p \< 0.0001
+    -   **Strong negative effect**: Most statistically significant
+    -   Each degree increase reduces thrust by \~17 units
+3.  **ET (Exhaust Temperature):** β = 0.822, p = 0.0253
+    -   **Positive effect**: Counterintuitive - needs investigation
+    -   May indicate measurement issues or complex relationships
+
+**Not Significant:** - **SSR (Secondary Speed):** p = 0.4355 - **P (Pressure):** p = 0.1612 - **FFR (Fuel Flow Rate):** p = 0.0592 (marginally significant)
+
+# b)COMPUTE AND INTERPRET R²
+
+```{r}
+r_squared <- summary(model)$r.squared
+adj_r_squared <- summary(model)$adj.r.squared
+
+print(sprintf("Multiple R-squared    : %.4f (%.1f%% of variation explained)\n",
+            r_squared, r_squared*100))
+print(sprintf("Adjusted R-squared   : %.4f\n", adj_r_squared))
+
+# Calculate manually to verify
+SSR <- sum((fitted(model) - mean(data$THRUST))^2)
+SST <- sum((data$THRUST - mean(data$THRUST))^2)
+SSE <- sum(residuals(model)^2)
+r2_manual <- 1 - SSE/SST
+
+print(sprintf("Manual calculation   : R² = 1 - SSE/SST = 1 - %.1f/%.1f = %.4f\n",
+            SSE, SST, r2_manual))
+```
+
+Interpretation: **Model explains 99.8% of the data's variation** — an almost perfect fit.
+
+-   **R² = 0.9977**: Our predictors are extremely strong at explaining the outcome
+-   **Adjusted R² = 0.9972**: Virtually the same, meaning we are not overfitting with unnecessary variables
+-   **Manual check confirms**: Calculation is correct ✅
+
+**Note**: Such near-perfect results are rare outside fields like physics or engineering. Double-check for:
+
+ 1. Data errors or circular calculations
+
+2. Whether this makes sense for my problem
+
+3\. Testing on new data to confirm it's not too good to be true
+
+# c)NORMAL PROBABILITY PLOT OF RESIDUALS
+
+```{r}
+
+# Set up plotting area
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+# Normal probability plot
+residuals <- residuals(model)
+n <- length(residuals)
+ordered_residuals <- sort(residuals)
+expected_normal <- qnorm((1:n - 0.5)/n)
+
+plot(expected_normal, ordered_residuals,
+     xlab = "Theoretical Quantiles",
+     ylab = "Sample Residuals",
+     main = "Normal Q-Q Plot of Residuals",
+     pch = 19, col = "blue")
+abline(a = 0, b = sd(residuals), col = "red", lwd = 2)
+
+# Shapiro-Wilk test for normality
+shapiro_test <- shapiro.test(residuals)
+cat(sprintf("\nShapiro-Wilk normality test:\n"))
+cat(sprintf("W = %.4f, p-value = %.4f\n", 
+            shapiro_test$statistic, shapiro_test$p.value))
+
+if(shapiro_test$p.value > 0.05) {
+  cat("Conclusion: No evidence to reject normality assumption (p > 0.05)\n")
+} else {
+  cat("Conclusion: Evidence suggests non-normal residuals (p ≤ 0.05)\n")
+}
+
+# Histogram of residuals
+hist(residuals, breaks = 10,
+     main = "Histogram of Residuals",
+     xlab = "Residuals",
+     col = "lightblue",
+     probability = TRUE)
+curve(dnorm(x, mean = mean(residuals), sd = sd(residuals)),
+      add = TRUE, col = "red", lwd = 2)
+
+```
+
+## Interpretation: 🧠
+
+✅ My data appears normal – I have no evidence against the normality assumption.
+
+What this means for me: I can safely use statistical methods that assume normally distributed data (like t-tests, linear regression, ANOVA) for my analysis.
+
+d)  **RESIDUALS VS PREDICTED PLOT**
+
+```{r}
+
+par(mfrow = c(1, 1), mar = c(4, 4, 2, 1))
+
+fitted_values <- fitted(model)
+plot(fitted_values, residuals,
+     xlab = "Predicted THRUST",
+     ylab = "Residuals",
+     main = "Residuals vs Predicted Values",
+     pch = 19, col = "blue")
+abline(h = 0, col = "red", lwd = 2)
+
+# Add LOWESS smoother (base R version)
+lowess_fit <- lowess(fitted_values, residuals)
+lines(lowess_fit, col = "darkgreen", lwd = 2)
+
+# Test for heteroscedasticity (Breusch-Pagan test, manual calculation)
+cat("\nChecking constant variance assumption:\n")
+n <- nrow(data)
+p <- length(coef(model)) - 1
+residuals_sq <- residuals^2
+aux_model <- lm(residuals_sq ~ PSR + SSR + FFR + P + ET + AT, data = data)
+LM_stat <- n * summary(aux_model)$r.squared
+p_value_BP <- 1 - pchisq(LM_stat, df = p)
+
+cat(sprintf("Breusch-Pagan test (manual): LM = %.3f, p-value = %.4f\n",
+            LM_stat, p_value_BP))
+
+if(p_value_BP > 0.05) {
+  cat("Conclusion: No evidence of heteroscedasticity (constant variance assumption reasonable)\n")
+} else {
+  cat("Conclusion: Evidence of heteroscedasticity (non-constant variance)\n")
+}
+
+```
+
+## **Interpretation**:🧠
+
+#####  ❌ **My data shows non-constant variance** – there is **clear evidence of heteroscedasticity** (p \< 0.05).
+
+Looking at my residual plot, I can see clear signs of **heteroscedasticity** — the variance of the residuals changes with my predicted THRUST values.
+
+**Key observations:** - **At lower predicted THRUST (\~3000)**: My residuals are tightly clustered (small spread) - **At higher predicted THRUST (\~4500)**: My residuals are much more spread out (larger variance)
+
+**What this means:**\
+As my predicted thrust values increase, the **prediction error also increases**. This "fanning out" pattern visually confirms the Breusch-Pagan test result and violates the constant variance assumption for linear regression.
+
+# **e)SCALED RESIDUALS:** 
+
+• Studentized standardized residuals
+
+• Studentized residuals
+
+• R-student residuals
+
+```{r}
+
+
+# Calculate various residuals
+X <- model.matrix(model)
+H <- X %*% solve(t(X) %*% X) %*% t(X)  # Hat matrix
+h <- diag(H)  # Leverage values
+MSE <- sum(residuals^2) / (n - p - 1)  # Mean squared error
+
+# 1. Studentized standardized residuals (internally studentized)
+r_i <- residuals / sqrt(MSE * (1 - h))
+
+# 2. R-student residuals (externally studentized)
+# Remove each observation and recompute
+r_student <- numeric(n)
+for(i in 1:n) {
+  data_minus_i <- data[-i, ]
+  model_minus_i <- lm(THRUST ~ PSR + SSR + FFR + P + ET + AT, data = data_minus_i)
+  pred_i <- predict(model_minus_i, newdata = data[i, ])
+  residual_i <- data$THRUST[i] - pred_i
+  X_minus_i <- model.matrix(model_minus_i)
+  H_minus_i <- X_minus_i %*% solve(t(X_minus_i) %*% X_minus_i) %*% t(X_minus_i)
+  h_ii_minus <- diag(H_minus_i)[1]  # For the single prediction
+  MSE_minus_i <- sum(residuals(model_minus_i)^2) / (n - p - 2)
+  r_student[i] <- residual_i / sqrt(MSE_minus_i * (1 + h_ii_minus))
+}
+
+# Create diagnostic table
+diagnostic_df <- data.frame(
+  Observation = 1:n,
+  Residual = round(residuals, 2),
+  Standardized = round(scale(residuals), 3),
+  Studentized = round(r_i, 3),
+  R_Student = round(r_student, 3),
+  Leverage = round(h, 4)
+)
+
+print("\nFirst 10 observations of diagnostic residuals:\n")
+print(head(diagnostic_df, 10))
+
+# Identify potential outliers
+outliers_student <- which(abs(r_i) > 2)
+outliers_rstudent <- which(abs(r_student) > 2)
+
+print(sprintf("\nObservations with |Studentized residual| > 2: %s\n",
+            paste(outliers_student, collapse = ", ")))
+print(sprintf("Observations with |R-student| > 2: %s\n",
+            paste(outliers_rstudent, collapse = ", ")))
+
+
+```
+
+## INTERPRETATION: 🧠
+
+1\. Studentized standardized residuals: Account for unequal variance
+
+2\. R-student residuals: More sensitive outlier detection (excludes observation)
+
+3. Values \> \|2\| suggest potential outliers requiring investigation
+
+f)PRESS STATISTIC AND PREDICTION R²
+
+```{r}
+
+
+# Calculate PRESS manually
+press_residuals <- residuals / (1 - h)
+PRESS <- sum(press_residuals^2)
+
+# Calculate prediction R²
+SST <- sum((data$THRUST - mean(data$THRUST))^2)
+R2_pred <- 1 - (PRESS / SST)
+
+print(sprintf("PRESS statistic     : %.2f\n", PRESS))
+print(sprintf("Total SST          : %.2f\n", SST))
+print(sprintf("Prediction R²      : %.4f\n", R2_pred))
+print(sprintf("Model R²           : %.4f\n", r_squared))
+print(sprintf("Difference         : %.4f\n", r_squared - R2_pred))
+
+cat("\nINTERPRETATION:\n")
+if(R2_pred > 0.9) {
+  cat("Excellent predictive capability (R²_pred > 0.9)\n")
+} else if(R2_pred > 0.7) {
+  cat("Good predictive capability (R²_pred > 0.7)\n")
+} else {
+  cat("Moderate predictive capability\n")
+}
+
+
+```
+
+### Excellent interpretation of my PRESS statistic results.🌟
+
+**Key takeaway:** My model has **strong predictive power** on new data.
+
+**What this tells me:**
+
+-   **Prediction R² = 0.9948**: When predicting entirely new observations, my model still explains **99.5%** of the variation. This is excellent (\>0.9 is strong).
+
+-   **Difference = 0.0029**: The tiny gap (0.29%) between my model's **fitting ability** (0.9977) and **prediction ability** (0.9948) means:
+
+    -   My model is **not overfitting** significantly
+    -   It should **generalize well** to new data
+
+**Bottom line:** Despite the heteroscedasticity issue I identified earlier, my model demonstrates **excellent predictive capability** — it's not just fitting my current data well, but should perform reliably on future data too.
+
+# **g)INFLUENCE DIAGNOSTICS:** 
+
+• Hat diagonals
+
+• Cook’s Distance (Cook’s D)
+
+• DFBETAS • DFITS
+
+```{r}
+
+
+# 1. Hat diagonals (leverage)
+leverage_cutoff1 <- 2 * (p + 1) / n
+leverage_cutoff2 <- 3 * (p + 1) / n
+
+# 2. Cook's Distance
+cooks_d <- (r_i^2 / (p + 1)) * (h / (1 - h))
+cooks_cutoff <- 4 / (n - p - 1)
+
+# 3. DFBETAS
+dfbetas_mat <- matrix(0, nrow = n, ncol = p + 1)
+for(i in 1:n) {
+  data_minus_i <- data[-i, ]
+  model_minus_i <- lm(THRUST ~ PSR + SSR + FFR + P + ET + AT, data = data_minus_i)
+  se_full <- summary(model)$coefficients[, 2]
+  se_minus <- summary(model_minus_i)$coefficients[, 2]
+  dfbetas_mat[i, ] <- (coef(model) - coef(model_minus_i)) / se_minus
+}
+dfbetas_cutoff <- 2 / sqrt(n)
+
+# 4. DFITS
+dffits_val <- r_i * sqrt(h / (1 - h))
+dffits_cutoff <- 2 * sqrt((p + 1) / n)
+
+# Create influence diagnostics data frame
+influence_df <- data.frame(
+  Observation = 1:n,
+  Leverage = round(h, 4),
+  CooksD = round(cooks_d, 4),
+  DFITS = round(dffits_val, 4)
+)
+
+# Add DFBETAS for each predictor
+dfbetas_names <- paste0("DFB_", names(coef(model)))
+colnames(dfbetas_mat) <- dfbetas_names
+influence_df <- cbind(influence_df, round(dfbetas_mat, 4))
+
+print("\nINFLUENCE DIAGNOSTICS SUMMARY:\n")
+print(sprintf("Sample size (n)     : %d\n", n))
+print(sprintf("Parameters (p)      : %d\n", p))
+print(sprintf("\nCutoff values:\n"))
+cat(sprintf("  Leverage (2p/n)   : %.3f\n", leverage_cutoff1))
+cat(sprintf("  Cook's D          : %.3f\n", cooks_cutoff))
+cat(sprintf("  DFBETAS           : %.3f\n", dfbetas_cutoff))
+cat(sprintf("  DFITS             : %.3f\n", dffits_cutoff))
+
+# Identify influential observations
+high_leverage <- which(h > leverage_cutoff1)
+high_cooks <- which(cooks_d > cooks_cutoff)
+high_dffits <- which(abs(dffits_val) > dffits_cutoff)
+
+# Check DFBETAS for each predictor
+high_dfbetas <- list()
+for(j in 1:(p+1)) {
+  high_dfbetas[[names(coef(model))[j]]] <- which(abs(dfbetas_mat[, j]) > dfbetas_cutoff)
+}
+
+cat("\nINFLUENTIAL OBSERVATIONS:\n")
+cat(sprintf("High leverage (>%.3f)  : %s\n", leverage_cutoff1,
+            paste(high_leverage, collapse = ", ")))
+cat(sprintf("High Cook's D (>%.3f)  : %s\n", cooks_cutoff,
+            paste(high_cooks, collapse = ", ")))
+cat(sprintf("High DFITS (>%.3f)     : %s\n", dffits_cutoff,
+            paste(high_dffits, collapse = ", ")))
+
+cat("\nObservations influencing specific coefficients (DFBETAS >", dfbetas_cutoff, "):\n")
+for(j in 1:(p+1)) {
+  if(length(high_dfbetas[[j]]) > 0) {
+    cat(sprintf("  %-10s: %s\n", names(coef(model))[j],
+                paste(high_dfbetas[[j]], collapse = ", ")))
+  }
+}
+
+# Create influence plots
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+
+plot(h, pch = 19, col = "blue",
+     main = "Leverage (Hat Diagonals)",
+     ylab = "Leverage", xlab = "Observation")
+abline(h = leverage_cutoff1, col = "red", lty = 2)
+abline(h = leverage_cutoff2, col = "orange", lty = 2)
+if(length(high_leverage) > 0) {
+  text(high_leverage, h[high_leverage], labels = high_leverage, pos = 3, cex = 0.7)
+}
+
+plot(cooks_d, pch = 19, col = "blue",
+     main = "Cook's Distance",
+     ylab = "Cook's D", xlab = "Observation")
+abline(h = cooks_cutoff, col = "red", lty = 2)
+if(length(high_cooks) > 0) {
+  text(high_cooks, cooks_d[high_cooks], labels = high_cooks, pos = 3, cex = 0.7)
+}
+
+plot(dffits_val, pch = 19, col = "blue",
+     main = "DFITS",
+     ylab = "DFITS", xlab = "Observation")
+abline(h = c(-dffits_cutoff, dffits_cutoff), col = "red", lty = 2)
+if(length(high_dffits) > 0) {
+  text(high_dffits, dffits_val[high_dffits], labels = high_dffits, pos = 3, cex = 0.7)
+}
+
+# Plot DFBETAS for intercept and PSR (most significant)
+plot(dfbetas_mat[, 1], pch = 19, col = "blue",
+     main = "DFBETAS for Intercept",
+     ylab = "DFBETAS", xlab = "Observation")
+abline(h = c(-dfbetas_cutoff, dfbetas_cutoff), col = "red", lty = 2)
+
+
+
+```
+
+### **Influence diagnostics show several influential points in my model.**🔻
+
+**Key findings:** - **Observations 11 and 20** consistently appear as highly influential across all diagnostics: - High leverage (\>0.350) - High Cook's D (\>0.121)\
+- Influencing multiple coefficients
+
+**What this means for my analysis:** - My model's results are **heavily influenced by a few key data points** (especially 11, 20, 21, 28) - If I remove or alter these observations, my regression coefficients could change substantially - This is concerning given I already identified heteroscedasticity issues
+
+**Implications:** 1. My current model may be **too sensitive** to these specific observations 2. I should investigate **why these points are so influential** — are they data errors or legitimate extreme values? 3. Consider **robust regression methods** or verify these influential observations are valid
+
+**Bottom line:** While my model has excellent R², its stability depends on a handful of observations that warrant careful examination.
+
+# **FINAL SUMMARY AND CONCLUSIONS**
+
+```{r}
+
+
+# Model performance summary
+cat("\nMODEL PERFORMANCE:\n")
+cat(sprintf("1. R-squared               : %.4f (Excellent fit)\n", r_squared))
+cat(sprintf("2. Adjusted R-squared      : %.4f\n", adj_r_squared))
+cat(sprintf("3. Prediction R-squared    : %.4f (Good predictive ability)\n", R2_pred))
+cat(sprintf("4. Residual Std. Error     : %.2f\n", summary(model)$sigma))
+
+# Significance summary
+cat("\nSIGNIFICANT PREDICTORS (α = 0.05):\n")
+sig_predictors <- rownames(coef_table)[coef_table[, 4] < 0.05]
+if(length(sig_predictors) > 0) {
+  for(pred in sig_predictors) {
+    if(pred != "(Intercept)") {
+      direction <- ifelse(coef_table[pred, 1] > 0, "positive", "negative")
+      cat(sprintf("  - %-10s: %s effect (p = %.4f)\n", 
+                  pred, direction, coef_table[pred, 4]))
+    }
+  }
+} else {
+  cat("  None at α = 0.05 level\n")
+}
+
+# Assumptions check
+cat("\nMODEL ASSUMPTIONS CHECK:\n")
+cat("1. Normality: ")
+if(shapiro_test$p.value > 0.05) {
+  cat("Satisfied (Shapiro-Wilk p =", round(shapiro_test$p.value, 4), ")\n")
+} else {
+  cat("Questionable (consider transformations)\n")
+}
+
+cat("2. Constant variance: ")
+if(p_value_BP > 0.05) {
+  cat("Satisfied (Breusch-Pagan p =", round(p_value_BP, 4), ")\n")
+} else {
+  cat("Questionable (heteroscedasticity detected)\n")
+}
+
+cat("3. Influential observations: ")
+if(length(high_cooks) == 0 && length(high_dffits) == 0) {
+  cat("None detected\n")
+} else {
+  cat("Present (observations:", 
+      paste(unique(c(high_cooks, high_dffits)), collapse = ", "), ")\n")
+}
+
+# Recommendations
+cat("\nENGINEERING RECOMMENDATIONS:\n")
+cat("1. Primary Speed (PSR) is the most significant positive predictor of thrust\n")
+cat("2. Exhaust Temperature (ET) shows significant negative relationship\n")
+cat("3. Focus on controlling PSR and monitoring ET for optimal performance\n")
+cat("4. Consider model refinement by removing non-significant predictors\n")
+
+cat("\nLIMITATIONS AND FURTHER ANALYSIS:\n")
+cat("1. Consider interaction terms (e.g., PSR × ET)\n")
+cat("2. Explore potential nonlinear relationships\n")
+cat("3. Validate model with new data\n")
+cat("4. Consider robust regression if outliers are problematic\n")
+
+
+
+```
+
+
